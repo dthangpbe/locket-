@@ -791,6 +791,9 @@ function capturePhoto() {
     elements.capturedPhoto.style.display = 'block';
     elements.captionSection.style.display = 'block';
     elements.captureBtn.style.display = 'none';
+
+    // Load albums into dropdown
+    loadAlbumsToSelect();
 }
 
 function cancelPhoto() {
@@ -815,6 +818,19 @@ async function postPhoto() {
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             createdAt: new Date().toISOString() // For sorting before server timestamp arrives
         });
+
+        // Add to selected album if user chose one
+        const selectedAlbumId = document.getElementById('albumSelect').value;
+        if (selectedAlbumId) {
+            const recentPhoto = await db.collection('photos')
+                .where('userId', '==', APP_STATE.currentUser.uid)
+                .orderBy('createdAt', 'desc')
+                .limit(1)
+                .get();
+            if (!recentPhoto.empty) {
+                await addPhotoToAlbum(recentPhoto.docs[0].id, selectedAlbumId);
+            }
+        }
 
         cancelPhoto();
 
