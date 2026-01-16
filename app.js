@@ -413,7 +413,6 @@ async function loadUserData(uid) {
 function showApp() {
     elements.authModal.classList.remove('active');
     elements.app.style.display = 'block';
-    elements.displayAccountId.textContent = APP_STATE.currentUser.accountId;
 
     // Setup real-time listeners
     setupFriendsListener();
