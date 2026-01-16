@@ -1583,3 +1583,130 @@ body {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
 }
+/* ===== Mobile Responsive Optimizations ===== */
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+
+    /* Header adjustments */
+    .app-title {
+        font-size: 1.2rem;
+    }
+
+    .header-actions {
+        gap: 0.5rem;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .header-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    /* Camera optimizations */
+    .camera-section {
+        padding: 1rem;
+    }
+
+    .camera-box {
+        border-radius: 1rem;
+    }
+
+    /* Modal optimizations */
+    .modal-content {
+        width: 95%;
+        max-width: 95vw;
+        margin: 1rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Feed optimizations */
+    .photo-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .photo-header {
+        padding: 0.75rem;
+    }
+
+    .photo-image {
+        max-height: 70vh;
+    }
+
+    /* Friends modal */
+    .friend-item {
+        padding: 0.75rem;
+    }
+
+    /* Comments */
+    .comment-input input {
+        font-size: 14px;
+    }
+
+    /* Profile modal */
+    .profile-avatar-large {
+        width: 100px;
+        height: 100px;
+        font-size: 3rem;
+    }
+
+    /* Notifications */
+    .notification-item {
+        padding: 0.75rem;
+    }
+}
+
+/* Small mobile phones */
+@media (max-width: 480px) {
+    .app-title {
+        font-size: 1rem;
+    }
+
+    .header-actions {
+        gap: 0.35rem;
+    }
+
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+
+    .friend-count,
+    .notif-badge {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+
+    .photo-card {
+        border-radius: 0.75rem;
+    }
+
+    .modal-content {
+        border-radius: 1rem;
+    }
+}
+
+/* Touch-friendly adjustments */
+@media (hover: none) and (pointer: coarse) {
+
+    /* Increase tap targets for touch */
+    .icon-btn,
+    .primary-btn,
+    .secondary-btn,
+    .capture-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .friend-item,
+    .notification-item {
+        min-height: 60px;
+    }
+}
