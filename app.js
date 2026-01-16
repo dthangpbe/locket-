@@ -10,6 +10,10 @@ const APP_STATE = {
     stream: null
 };
 
+// Camera state
+let currentStream = null;
+let currentFacingMode = 'user';
+
 // ===== DOM Elements =====
 const elements = {
     authModal: document.getElementById('authModal'),
@@ -711,8 +715,9 @@ async function initCamera() {
             audio: false
         };
 
-        APP_STATE.stream = await navigator.mediaDevices.getUserMedia(constraints);
-        elements.cameraPreview.srcObject = APP_STATE.stream;
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        elements.cameraPreview.srcObject = currentStream;
+        APP_STATE.stream = currentStream;
     } catch (error) {
         console.error('Camera error:', error);
         elements.cameraPreview.style.display = 'none';

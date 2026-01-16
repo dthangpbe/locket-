@@ -1,0 +1,36 @@
+// ===== FIX FOR CAMERA FLIP & THEME TOGGLE =====
+
+// =========================================
+// 1. ADD at line 11 (after APP_STATE declaration):
+// =========================================
+// Camera state
+let currentStream = null;
+let currentFacingMode = 'user';
+
+
+// =========================================
+// 2. UPDATE initCamera function (around line 709):
+// =========================================
+// FIND this line:
+                facingMode: 'user'
+
+// REPLACE WITH:
+                facingMode: currentFacingMode
+
+
+// FIND these lines (around line 714-715):
+        APP_STATE.stream = await navigator.mediaDevices.getUserMedia(constraints);
+        elements.cameraPreview.srcObject = APP_STATE.stream;
+
+// REPLACE WITH:
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        elements.cameraPreview.srcObject = currentStream;
+        APP_STATE.stream = currentStream;
+
+
+// =========================================
+// DONE! After these changes:
+// - Camera flip (🔄) will work
+// - Theme toggle (🌙/☀️) will work
+// - Variables will be properly tracked
+// =========================================
