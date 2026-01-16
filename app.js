@@ -72,7 +72,13 @@ const elements = {
     editBio: document.getElementById('editBio'),
     bioCharCount: document.getElementById('bioCharCount'),
     cancelEditBtn: document.getElementById('cancelEditBtn'),
-    saveProfileBtn: document.getElementById('saveProfileBtn')
+    saveProfileBtn: document.getElementById('saveProfileBtn'),
+    // Notification elements
+    notificationsBtn: document.getElementById('notificationsBtn'),
+    notifBadge: document.getElementById('notifBadge'),
+    notificationsModal: document.getElementById('notificationsModal'),
+    closeNotificationsModal: document.getElementById('closeNotificationsModal'),
+    notificationsList: document.getElementById('notificationsList')
 };
 
 // ===== Unique ID Generation =====
@@ -178,6 +184,13 @@ function setupEventListeners() {
     elements.saveProfileBtn.addEventListener('click', saveProfile);
     elements.profileModal.addEventListener('click', (e) => {
         if (e.target === elements.profileModal) closeModal(elements.profileModal);
+    });
+
+    // Notifications
+    elements.notificationsBtn.addEventListener('click', () => openModal(elements.notificationsModal));
+    elements.closeNotificationsModal.addEventListener('click', () => closeModal(elements.notificationsModal));
+    elements.notificationsModal.addEventListener('click', (e) => {
+        if (e.target === elements.notificationsModal) closeModal(elements.notificationsModal);
     });
 }
 
@@ -1326,6 +1339,163 @@ async function deletePhoto(photoId) {
     } catch (error) {
         console.error('Delete photo error:', error);
         alert('Lỗi khi xóa ảnh: ' + error.message);
+    }
+}
+
+// ===== Notifications System =====
+async function createNotification(toUserId, type, data) {
+    if (toUserId === APP_STATE.currentUser.uid) return;
+
+    const notification = {
+        type: type,
+        fromUserId: APP_STATE.currentUser.uid,
+        fromUserName: APP_STATE.currentUser.displayName || APP_STATE.currentUser.username,
+        fromUserAvatar: APP_STATE.currentUser.avatar,
+        fromUserAvatarImage: APP_STATE.currentUser.avatarImage,
+        read: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        ...data
+    };
+
+    try {
+        await db.collection('users').doc(toUserId).collection('notifications').add(notification);
+    } catch (error) {
+        console.error('Create notification error:', error);
+    }
+}
+
+function setupNotificationsListener() {
+    const notifsRef = db.collection('users').doc(APP_STATE.currentUser.uid)
+        .collection('notifications')
+        .orderBy('createdAt', 'desc')
+        .limit(50);
+
+    const unsubscribe = notifsRef.onSnapshot((snapshot) => {
+        const unreadCount = snapshot.docs.filter(d => !d.data().read).length;
+
+        if (unreadCount > 0) {
+            elements.notifBadge.textContent = unreadCount;
+            elements.notifBadge.style.display = 'block';
+        } else {
+            elements.notifBadge.style.display = 'none';
+        }
+
+        renderNotifications(snapshot);
+    });
+
+    APP_STATE.unsubscribers.push(unsubscribe);
+}
+
+function renderNotifications(snapshot) {
+    if (!snapshot || snapshot.empty) {
+        elements.notificationsList.innerHTML = '<div class="empty-state"><p>Chưa có thông báo</p></div>';
+        return;
+    }
+
+    const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    elements.notificationsList.innerHTML = notifications.map(notif => {
+        const avatarHTML = notif.fromUserAvatarImage
+            ? `<img src="${notif.fromUserAvatarImage}" alt="Avatar">`
+            : (notif.fromUserAvatar || '👤');
+
+        return `
+            <div class="notification-item ${notif.read ? 'read' : 'unread'}" 
+                 onclick="handleNotificationClick('${notif.id}', '${notif.photoId || ''}', '${notif.fromUserId}')">
+                <div class="notification-avatar">${avatarHTML}</div>
+                <div class="notification-content">
+                    <p><strong>${notif.fromUserName}</strong> ${notif.message}</p>
+                    <span class="notification-time">${formatTimestamp(notif.createdAt)}</span>
+                </div>
+                ${!notif.read ? '<div class="notification-indicator"></div>' : ''}
+                <button class="notification-delete" onclick="event.stopPropagation(); deleteNotification('${notif.id}')">×</button>
+            </div>
+        `;
+    }).join('');
+}
+
+async function handleNotificationClick(notifId, photoId, fromUserId) {
+    try {
+        await db.collection('users').doc(APP_STATE.currentUser.uid)
+            .collection('notifications').doc(notifId).update({ read: true });
+
+        closeModal(elements.notificationsModal);
+
+        if (photoId && photoId !== 'undefined') {
+            document.getElementById(`photoCard-${photoId}`)?.scrollIntoView({ behavior: 'smooth' });
+        } else if (fromUserId) {
+            await viewUserProfile(fromUserId);
+        }
+    } catch (error) {
+        console.error('Handle notification error:', error);
+    }
+}
+
+async function deleteNotification(notifId) {
+    try {
+        await db.collection('users').doc(APP_STATE.currentUser.uid)
+            .collection('notifications').doc(notifId).delete();
+    } catch (error) {
+        console.error('Delete notification error:', error);
+    }
+}
+
+async function clearReadNotifications() {
+    try {
+        const snapshot = await db.collection('users').doc(APP_STATE.currentUser.uid)
+            .collection('notifications').where('read', '==', true).get();
+
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+    } catch (error) {
+        console.error('Clear notifications error:', error);
+    }
+}
+
+// ===== Comment Replies =====
+function showReplyInput(photoId, commentId, userName) {
+    const replyInput = document.getElementById(`replyInput-${commentId}`);
+    if (replyInput) {
+        replyInput.classList.add('active');
+        const input = replyInput.querySelector('input');
+        input.placeholder = `Trả lời @${userName}...`;
+        input.focus();
+    }
+}
+
+async function postReply(photoId, parentCommentId, parentUserId, parentUserName) {
+    const input = document.getElementById(`replyInput-${parentCommentId}`).querySelector('input');
+    const replyText = input.value.trim();
+
+    if (!replyText) {
+        alert('Vui lòng nhập nội dung trả lời!');
+        return;
+    }
+
+    try {
+        await db.collection('photos').doc(photoId).collection('comments').add({
+            userId: APP_STATE.currentUser.uid,
+            userName: APP_STATE.currentUser.displayName || APP_STATE.currentUser.username,
+            userAvatar: APP_STATE.currentUser.avatar,
+            userAvatarImage: APP_STATE.currentUser.avatarImage,
+            comment: replyText,
+            replyTo: parentCommentId,
+            replyToUser: parentUserName,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        input.value = '';
+        document.getElementById(`replyInput-${parentCommentId}`).classList.remove('active');
+
+        await createNotification(parentUserId, 'reply', {
+            photoId: photoId,
+            commentId: parentCommentId,
+            message: 'đã trả lời bình luận của bạn'
+        });
+    } catch (error) {
+        console.error('Post reply error:', error);
+        alert('Lỗi khi đăng trả lời: ' + error.message);
     }
 }
 
