@@ -1,0 +1,19 @@
+// Remove duplicate theme toggle from camera
+
+// In index.html, find lines 83-88 (camera overlay):
+
+// FIND this:
+                        <div style="position: absolute; top: 1rem; right: 1rem; display: flex; gap: 0.5rem;">
+                            <button id="flipCameraBtn" class="icon-btn" title="Chuyển camera"
+                                style="width: 40px; height: 40px;">🔄</button>
+                            <button id="themeToggle" class="icon-btn" title="Chuyển chế độ"
+                                style="width: 40px; height: 40px;">🌙</button>
+                        </div>
+
+// REPLACE WITH:
+                        <div style="position: absolute; top: 1rem; right: 1rem;">
+                            <button id="flipCameraBtn" class="icon-btn" title="Chuyển camera"
+                                style="width: 40px; height: 40px;">🔄</button>
+                        </div>
+
+// Just remove the themeToggle button and the "display: flex; gap: 0.5rem;" from the div
