@@ -1803,3 +1803,136 @@ body {
 .flip-camera-btn:active {
     transform: scale(0.95);
 }
+/* ===== PERFECT HEADER ALIGNMENT ===== */
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.header-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mobile header perfect fit */
+@media (max-width: 768px) {
+    .icon-btn {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+    }
+
+    .header-avatar {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .header-avatar img {
+        width: 28px !important;
+        height: 28px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .icon-btn {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .header-avatar {
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    .header-avatar img {
+        width: 24px !important;
+        height: 24px !important;
+    }
+}
+
+/* ===== PERFECT CAMERA CENTER ===== */
+.camera-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 2rem;
+}
+
+.camera-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    position: relative;
+}
+
+.capture-btn {
+    width: 70px;
+    height: 70px;
+    position: relative;
+}
+
+.flip-camera-btn {
+    width: 50px;
+    height: 50px;
+}
+
+/* Mobile camera adjustments */
+@media (max-width: 768px) {
+    .camera-overlay {
+        padding-bottom: 1.5rem;
+    }
+
+    .capture-btn {
+        width: 65px;
+        height: 65px;
+    }
+
+    .flip-camera-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .camera-overlay {
+        padding-bottom: 1rem;
+    }
+
+    .camera-controls {
+        gap: 1rem;
+    }
+
+    .capture-btn {
+        width: 60px;
+        height: 60px;
+    }
+
+    .flip-camera-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 1.2rem;
+    }
+}
