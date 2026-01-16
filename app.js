@@ -1849,3 +1849,30 @@ async function addPhotoToAlbum(photoId, albumId) {
         console.error('Error adding photo to album:', error);
     }
 }
+
+// Load user's albums into select dropdown
+async function loadAlbumsToSelect() {
+    try {
+        const albumsSnapshot = await db.collection('users')
+            .doc(APP_STATE.currentUser.uid)
+            .collection('albums')
+            .orderBy('createdAt', 'desc')
+            .get();
+
+        const albumSelect = document.getElementById('albumSelect');
+
+        // Clear existing options except first one
+        albumSelect.innerHTML = '<option value="">Không thêm vào album</option>';
+
+        // Add albums as options
+        albumsSnapshot.docs.forEach(doc => {
+            const album = doc.data();
+            const option = document.createElement('option');
+            option.value = doc.id;
+            option.textContent = album.name;
+            albumSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading albums:', error);
+    }
+}
