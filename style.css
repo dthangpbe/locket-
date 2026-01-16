@@ -2053,3 +2053,54 @@ body {
         font-size: 1.2rem !important;
     }
 }
+/* ===== Photo Post UI Fixes ===== */
+
+/* Fix reaction button spacing */
+.reaction-btn {
+    padding: 0.4rem 0.8rem !important;
+    margin: 0.25rem !important;
+    gap: 0.4rem !important;
+    font-size: 1.1rem !important;
+}
+
+/* Fix send button border-radius */
+.comment-input button,
+.reply-input button {
+    border-radius: 1rem !important;
+    padding: 0.5rem 1.2rem !important;
+    min-width: 60px !important;
+}
+
+/* Better reaction display */
+.photo-reactions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem !important;
+}
+
+/* Mobile photo post improvements */
+@media (max-width: 768px) {
+    .reaction-btn {
+        padding: 0.35rem 0.7rem !important;
+        font-size: 1rem !important;
+        margin: 0.2rem !important;
+    }
+
+    .comment-input,
+    .reply-input {
+        padding: 0.75rem !important;
+    }
+
+    .comment-input input,
+    .reply-input input {
+        padding: 0.6rem 0.8rem !important;
+        font-size: 14px !important;
+    }
+
+    .comment-input button,
+    .reply-input button {
+        padding: 0.6rem 1rem !important;
+        font-size: 14px !important;
+    }
+}
