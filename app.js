@@ -893,7 +893,7 @@ async function renderFeed(photoDocs) {
                     <div class="comments-section">
                         <div class="comment-input">
                             <input type="text" id="commentInput-${photo.id}" placeholder="Viết bình luận..." maxlength="200">
-                            <button onclick="postComment('${photo.id}')">Gửi</button>
+                            <button onclick="postComment('${photo.id}')" style="border-radius: 1.2rem !important; border: none !important;">Gửi</button>
                         </div>
                         <div id="commentsContainer-${photo.id}" class="comments-list"></div>
                         <div id="commentCount-${photo.id}" class="comment-count"></div>
@@ -1347,8 +1347,9 @@ function renderComments(photoId, snapshot) {
                 </div>
             </div>
             <div id="replyInput-${comment.id}" class="reply-input comment-input">
-                <input type="text" maxlength="200">
-                <button onclick="postReply('${photoId}', '${comment.id}', '${comment.userId}', '${comment.userName}')">Gửi</button>
+                <input type="text" maxlength="200" placeholder="Trả lời @${comment.userName}...">
+                <button onclick="postReply('${photoId}', '${comment.id}', '${comment.userId}', '${comment.userName}')" style="border-radius: 1.2rem !important; border: none !important;">Gửi</button>
+                <button onclick="document.getElementById('replyInput-${comment.id}').classList.remove('active')" class="secondary-btn">Hủy</button>
             </div>
             ${replies.length > 0 ? `
                 <div class="comment-replies">
