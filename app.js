@@ -489,30 +489,21 @@ async function handleFriendSearch() {
 
 async function addFriendByUid(friendUid, accountId, displayName, avatar) {
     try {
-        // Add to current user's friends
-        await db.collection('users').doc(APP_STATE.currentUser.uid)
-            .collection('friends').doc(friendUid).set({
-                friendUid: friendUid,
-                accountId: accountId,
-                displayName: displayName,
-                avatar: avatar,
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-        // Add current user to friend's friends list
+        // Send friend request instead of adding directly
         await db.collection('users').doc(friendUid)
-            .collection('friends').doc(APP_STATE.currentUser.uid).set({
-                friendUid: APP_STATE.currentUser.uid,
-                accountId: APP_STATE.currentUser.accountId,
-                displayName: APP_STATE.currentUser.displayName,
-                avatar: APP_STATE.currentUser.avatar,
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            .collection('friendRequests').doc(APP_STATE.currentUser.uid).set({
+                fromUid: APP_STATE.currentUser.uid,
+                fromAccountId: APP_STATE.currentUser.accountId,
+                fromDisplayName: APP_STATE.currentUser.displayName,
+                fromAvatar: APP_STATE.currentUser.avatar,
+                status: 'pending',
+                sentAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
         elements.friendSearchInput.value = '';
         elements.searchResults.innerHTML = `
             <div class="search-no-results" style="color: #43e97b;">
-                ✅ Đã thêm ${displayName} vào danh sách bạn bè!
+                ✅ Đã gửi lời mời kết bạn tới ${displayName}!
             </div>
         `;
 
@@ -521,8 +512,49 @@ async function addFriendByUid(friendUid, accountId, displayName, avatar) {
         }, 2000);
 
     } catch (error) {
-        console.error('Add friend error:', error);
-        alert('Lỗi khi thêm bạn: ' + error.message);
+        console.error('Send friend request error:', error);
+        alert('Lỗi khi gửi lời mời: ' + error.message);
+    }
+}
+
+async function acceptFriendRequest(fromUid, fromAccountId, fromDisplayName, fromAvatar) {
+    try {
+        // Add each other as friends
+        await db.collection('users').doc(APP_STATE.currentUser.uid)
+            .collection('friends').doc(fromUid).set({
+                friendUid: fromUid,
+                accountId: fromAccountId,
+                displayName: fromDisplayName,
+                avatar: fromAvatar,
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+        await db.collection('users').doc(fromUid)
+            .collection('friends').doc(APP_STATE.currentUser.uid).set({
+                friendUid: APP_STATE.currentUser.uid,
+                accountId: APP_STATE.currentUser.accountId,
+                displayName: APP_STATE.currentUser.displayName,
+                avatar: APP_STATE.currentUser.avatar,
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+        // Delete the friend request
+        await db.collection('users').doc(APP_STATE.currentUser.uid)
+            .collection('friendRequests').doc(fromUid).delete();
+
+    } catch (error) {
+        console.error('Accept friend request error:', error);
+        alert('Lỗi khi chấp nhận lời mời: ' + error.message);
+    }
+}
+
+async function rejectFriendRequest(fromUid) {
+    try {
+        await db.collection('users').doc(APP_STATE.currentUser.uid)
+            .collection('friendRequests').doc(fromUid).delete();
+    } catch (error) {
+        console.error('Reject friend request error:', error);
+        alert('Lỗi khi từ chối lời mời: ' + error.message);
     }
 }
 
@@ -543,15 +575,38 @@ async function removeFriend(friendUid) {
 }
 
 function renderSuggestedFriends() {
-    // For now, show empty state
-    // In future, can implement friend suggestions based on mutual friends, etc.
-    elements.suggestedList.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-state-icon">🔍</div>
-            <p>Sử dụng tìm kiếm để thêm bạn bè!</p>
-            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Nhập ID tài khoản vào ô tìm kiếm ở trên</p>
-        </div>
-    `;
+    // Show friend requests instead
+    const requestsRef = db.collection('users').doc(APP_STATE.currentUser.uid)
+        .collection('friendRequests');
+
+    requestsRef.where('status', '==', 'pending').onSnapshot((snapshot) => {
+        if (snapshot.empty) {
+            elements.suggestedList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📬</div>
+                    <p>Không có lời mời kết bạn</p>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Tìm kiếm bạn bè bằng ID để gửi lời mời!</p>
+                </div>
+            `;
+            return;
+        }
+
+        const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        elements.suggestedList.innerHTML = requests.map(request => `
+            <div class="friend-item">
+                <div class="friend-avatar">${request.fromAvatar}</div>
+                <div class="friend-info">
+                    <h4>${request.fromDisplayName}</h4>
+                    <p>${request.fromAccountId}</p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="friend-action" onclick="acceptFriendRequest('${request.fromUid}', '${request.fromAccountId}', '${request.fromDisplayName}', '${request.fromAvatar}')" style="background: #43e97b;">Chấp nhận</button>
+                    <button class="friend-action remove" onclick="rejectFriendRequest('${request.fromUid}')">Từ chối</button>
+                </div>
+            </div>
+        `).join('');
+    });
 }
 
 // ===== Camera Functions =====
@@ -636,26 +691,30 @@ async function postPhoto() {
 
 // ===== Photos Feed =====
 function setupPhotosListener() {
-    // Get friend UIDs
-    db.collection('users').doc(APP_STATE.currentUser.uid)
-        .collection('friends')
-        .get()
-        .then(friendsSnapshot => {
-            const friendUids = friendsSnapshot.docs.map(doc => doc.data().friendUid);
-            friendUids.push(APP_STATE.currentUser.uid); // Include own photos
+    // Simple approach: Listen to ALL photos and filter client-side
+    // This avoids Firestore 'in' query limitations
+    const photosRef = db.collection('photos')
+        .orderBy('createdAt', 'desc')
+        .limit(100);
 
-            // Listen to photos from user and friends
-            const photosRef = db.collection('photos')
-                .where('userId', 'in', friendUids.slice(0, 10)) // Firestore limit is 10 for 'in' queries
-                .orderBy('timestamp', 'desc')
-                .limit(50);
+    const unsubscribe = photosRef.onSnapshot(async (snapshot) => {
+        // Get friend UIDs
+        const friendsSnapshot = await db.collection('users').doc(APP_STATE.currentUser.uid)
+            .collection('friends')
+            .get();
 
-            const unsubscribe = photosRef.onSnapshot((snapshot) => {
-                renderFeed(snapshot);
-            });
+        const friendUids = friendsSnapshot.docs.map(doc => doc.data().friendUid);
+        friendUids.push(APP_STATE.currentUser.uid); // Include own photos
 
-            APP_STATE.unsubscribers.push(unsubscribe);
-        });
+        // Filter photos from friends only
+        const friendPhotos = snapshot.docs.filter(doc =>
+            friendUids.includes(doc.data().userId)
+        );
+
+        renderFeed(friendPhotos);
+    });
+
+    APP_STATE.unsubscribers.push(unsubscribe);
 }
 
 function renderFeed(snapshot) {
