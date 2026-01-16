@@ -2,8 +2,8 @@
 
 ## ✅ Code đã được push lên GitHub
 
-**Repository:** https://github.com/dthangpbe/locket-
-**Commit:** 63545ae - "Add Firebase integration - Real-time multi-user features with Firestore and Auth"
+**Repository:** https://github.com/dthangpbe/G9Cam
+**Commit:** 7c143e3 - "Fix photo posting and add friend request system with send/accept/reject"
 
 **Files deployed:**
 - ✅ firebase-config.js (NEW)
@@ -17,7 +17,7 @@
 GitHub Pages sẽ tự động deploy trong **1-2 phút**.
 
 **Live URL:** 
-### 🔗 https://dthangpbe.github.io/locket-/
+### 🔗 https://dthangpbe.github.io/G9Cam/
 
 ## ⏱️ Đợi Deployment
 
@@ -28,7 +28,7 @@ GitHub Pages sẽ tự động deploy trong **1-2 phút**.
 ## 📱 Test ngay!
 
 **Trên máy tính:**
-1. Mở https://dthangpbe.github.io/locket-/
+1. Mở https://dthangpbe.github.io/G9Cam/
 2. Tạo tài khoản (vd: @user1-12345)
 
 **Trên điện thoại:**

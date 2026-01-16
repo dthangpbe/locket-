@@ -717,8 +717,8 @@ function setupPhotosListener() {
     APP_STATE.unsubscribers.push(unsubscribe);
 }
 
-function renderFeed(snapshot) {
-    if (!snapshot || snapshot.empty) {
+function renderFeed(photoDocs) {
+    if (!photoDocs || photoDocs.length === 0) {
         elements.photoFeed.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">📸</div>
@@ -729,7 +729,7 @@ function renderFeed(snapshot) {
         return;
     }
 
-    const photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const photos = photoDocs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     elements.photoFeed.innerHTML = photos.map(photo => {
         // Get reactions
