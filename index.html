@@ -97,6 +97,10 @@
                 <!-- Caption Input (Hidden Initially) -->
                 <div id="captionSection" class="caption-section" style="display: none;">
                     <textarea id="captionInput" placeholder="Viết caption cho ảnh...✍️" maxlength="150"></textarea>
+                    <select id="albumSelect"
+                        style="width: 100%; padding: 0.75rem; margin: 0.75rem 0; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-primary); font-size: 1rem;">
+                        <option value="">📁 Không thêm vào album</option>
+                    </select>
                     <div class="caption-actions">
                         <button id="cancelBtn" class="secondary-btn">Hủy</button>
                         <button id="postBtn" class="primary-btn">Đăng ảnh</button>
