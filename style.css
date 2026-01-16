@@ -2291,3 +2291,51 @@ input::placeholder {
 .profile-edit-section {
     background: var(--bg-tertiary) !important;
 }
+/* ===== FIX REACTIONS MODAL CENTER ===== */
+.reactions-modal {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90% !important;
+    max-width: 400px !important;
+    margin: 0 !important;
+}
+
+.reactions-modal .modal-content {
+    margin: 0 auto !important;
+    width: 100% !important;
+}
+
+.reactions-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 1rem !important;
+    justify-items: center !important;
+    padding: 1.5rem !important;
+}
+
+.reaction-option {
+    width: 60px !important;
+    height: 60px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+@media (max-width: 480px) {
+    .reactions-modal {
+        width: 95% !important;
+        max-width: 350px !important;
+    }
+
+    .reactions-grid {
+        gap: 0.8rem !important;
+        padding: 1.2rem !important;
+    }
+
+    .reaction-option {
+        width: 55px !important;
+        height: 55px !important;
+    }
+}
