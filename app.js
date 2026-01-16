@@ -858,6 +858,7 @@ async function renderFeed(photoDocs) {
                     </div>
                 </div>
                 <div class="photo-card-image">
+                    ${photo.userId === APP_STATE.currentUser.uid ? `<button class="delete-photo-btn" onclick="deletePhoto('${photo.id}')">🗑️ Xóa</button>` : ''}
                     <img src="${photo.image}" alt="Photo">
                 </div>
                 <div class="photo-card-content">
@@ -868,6 +869,16 @@ async function renderFeed(photoDocs) {
                         </button>
                     </div>
                     <div id="reactionsContainer-${photo.id}"></div>
+                    
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <div class="comment-input">
+                            <input type="text" id="commentInput-${photo.id}" placeholder="Viết bình luận..." maxlength="200">
+                            <button onclick="postComment('${photo.id}')">Gửi</button>
+                        </div>
+                        <div id="commentsContainer-${photo.id}" class="comments-list"></div>
+                        <div id="commentCount-${photo.id}" class="comment-count"></div>
+                    </div>
                 </div>
             </div>
         `;
@@ -875,6 +886,7 @@ async function renderFeed(photoDocs) {
 
     photos.forEach(photo => {
         setupReactionsListener(photo.id);
+        setupCommentsListener(photo.id);
     });
 }
 
@@ -1220,6 +1232,100 @@ async function saveProfile() {
     } catch (error) {
         console.error('Save profile error:', error);
         alert('Lỗi khi lưu profile: ' + error.message);
+    }
+}
+
+// ===== Comments Functions =====
+async function postComment(photoId) {
+    const input = document.getElementById(`commentInput-${photoId}`);
+    const commentText = input.value.trim();
+
+    if (!commentText) {
+        alert('Vui lòng nhập bình luận!');
+        return;
+    }
+
+    if (commentText.length > 200) {
+        alert('Bình luận quá dài (tối đa 200 ký tự)!');
+        return;
+    }
+
+    try {
+        await db.collection('photos').doc(photoId)
+            .collection('comments').add({
+                userId: APP_STATE.currentUser.uid,
+                userName: APP_STATE.currentUser.displayName || APP_STATE.currentUser.username,
+                userAvatar: APP_STATE.currentUser.avatar,
+                userAvatarImage: APP_STATE.currentUser.avatarImage,
+                comment: commentText,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+        input.value = '';
+    } catch (error) {
+        console.error('Post comment error:', error);
+        alert('Lỗi khi đăng bình luận: ' + error.message);
+    }
+}
+
+function setupCommentsListener(photoId) {
+    const commentsRef = db.collection('photos').doc(photoId)
+        .collection('comments')
+        .orderBy('createdAt', 'asc');
+
+    const unsubscribe = commentsRef.onSnapshot((snapshot) => {
+        renderComments(photoId, snapshot);
+    });
+
+    APP_STATE.unsubscribers.push(unsubscribe);
+}
+
+function renderComments(photoId, snapshot) {
+    const container = document.getElementById(`commentsContainer-${photoId}`);
+    const countElement = document.getElementById(`commentCount-${photoId}`);
+
+    if (!container || !countElement) return;
+
+    if (!snapshot || snapshot.empty) {
+        container.innerHTML = '';
+        countElement.textContent = '';
+        return;
+    }
+
+    const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    countElement.textContent = `${comments.length} bình luận`;
+
+    container.innerHTML = comments.map(comment => {
+        const avatarHTML = comment.userAvatarImage
+            ? `<img src="${comment.userAvatarImage}" alt="Avatar">`
+            : (comment.userAvatar || '👤');
+
+        return `
+            <div class="comment-item">
+                <div class="comment-avatar">${avatarHTML}</div>
+                <div class="comment-content">
+                    <div class="comment-author">${comment.userName}</div>
+                    <div class="comment-text">${comment.comment}</div>
+                    <div class="comment-time">${formatTimestamp(comment.createdAt)}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ===== Delete Photo Function =====
+async function deletePhoto(photoId) {
+    if (!confirm('Bạn có chắc muốn xóa ảnh này? Hành động này không thể hoàn tác.')) {
+        return;
+    }
+
+    try {
+        await db.collection('photos').doc(photoId).delete();
+        // Feed will auto-update via listener
+    } catch (error) {
+        console.error('Delete photo error:', error);
+        alert('Lỗi khi xóa ảnh: ' + error.message);
     }
 }
 
