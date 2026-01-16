@@ -641,11 +641,27 @@ function capturePhoto() {
     const canvas = elements.photoCanvas;
     const ctx = canvas.getContext('2d');
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
+    // Resize to max 800x800 to keep Base64 size under 500KB
+    const maxSize = 800;
+    let width = video.videoWidth;
+    let height = video.videoHeight;
 
-    const imageData = canvas.toDataURL('image/jpeg', 0.9);
+    if (width > maxSize || height > maxSize) {
+        if (width > height) {
+            height = (height / width) * maxSize;
+            width = maxSize;
+        } else {
+            width = (width / height) * maxSize;
+            height = maxSize;
+        }
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(video, 0, 0, width, height);
+
+    // Lower quality to reduce size (0.7 instead of 0.9)
+    const imageData = canvas.toDataURL('image/jpeg', 0.7);
 
     APP_STATE.currentPhotoData = imageData;
     elements.capturedImg.src = imageData;
@@ -698,18 +714,21 @@ function setupPhotosListener() {
         .limit(100);
 
     const unsubscribe = photosRef.onSnapshot(async (snapshot) => {
-        // Get friend UIDs
+        // Get friend UIDs and AccountIDs
         const friendsSnapshot = await db.collection('users').doc(APP_STATE.currentUser.uid)
             .collection('friends')
             .get();
 
         const friendUids = friendsSnapshot.docs.map(doc => doc.data().friendUid);
+        const friendAccountIds = friendsSnapshot.docs.map(doc => doc.data().accountId);
         friendUids.push(APP_STATE.currentUser.uid); // Include own photos
+        friendAccountIds.push(APP_STATE.currentUser.accountId);
 
-        // Filter photos from friends only
-        const friendPhotos = snapshot.docs.filter(doc =>
-            friendUids.includes(doc.data().userId)
-        );
+        // Filter photos from friends - support BOTH userId and accountId for backward compatibility
+        const friendPhotos = snapshot.docs.filter(doc => {
+            const data = doc.data();
+            return friendUids.includes(data.userId) || friendAccountIds.includes(data.accountId);
+        });
 
         renderFeed(friendPhotos);
     });
