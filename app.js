@@ -78,7 +78,12 @@ const elements = {
     notifBadge: document.getElementById('notifBadge'),
     notificationsModal: document.getElementById('notificationsModal'),
     closeNotificationsModal: document.getElementById('closeNotificationsModal'),
-    notificationsList: document.getElementById('notificationsList')
+    notificationsList: document.getElementById('notificationsList'),
+    // Header avatar
+    headerAvatar: document.getElementById('headerAvatar'),
+    // Camera and theme controls
+    flipCameraBtn: document.getElementById('flipCameraBtn'),
+    themeToggle: document.getElementById('themeToggle')
 };
 
 // ===== Unique ID Generation =====
@@ -146,6 +151,8 @@ function setupEventListeners() {
 
     // Camera
     elements.captureBtn.addEventListener('click', capturePhoto);
+    elements.flipCameraBtn.addEventListener('click', flipCamera);
+    elements.themeToggle.addEventListener('click', toggleTheme);
     elements.cancelBtn.addEventListener('click', cancelPhoto);
     elements.postBtn.addEventListener('click', postPhoto);
 
@@ -409,6 +416,7 @@ function showApp() {
     setupPhotosListener();
     setupNotificationsListener();
     updateFriendCount();
+    updateHeaderAvatar();
 }
 
 // ===== Friends Management =====
@@ -1334,6 +1342,7 @@ function renderComments(photoId, snapshot) {
                     <div class="comment-time">${formatTimestamp(comment.createdAt)}</div>
                     <div class="comment-actions">
                         <button class="reply-btn" onclick="showReplyInput('${photoId}', '${comment.id}', '${comment.userName}')">Trả lời</button>
+                        ${comment.userId === APP_STATE.currentUser.uid ? `<button class="comment-delete" onclick="deleteComment('${photoId}', '${comment.id}')">Xóa</button>` : ''}
                     </div>
                 </div>
             </div>
@@ -1357,6 +1366,7 @@ function renderComments(photoId, snapshot) {
                                     </div>
                                     <div class="comment-text">${reply.comment}</div>
                                     <div class="comment-time">${formatTimestamp(reply.createdAt)}</div>
+                                    ${reply.userId === APP_STATE.currentUser.uid ? `<button class="comment-delete" onclick="deleteComment('${photoId}', '${reply.id}')">Xóa</button>` : ''}
                                 </div>
                             </div>
                         `;
@@ -1539,5 +1549,73 @@ async function postReply(photoId, parentCommentId, parentUserId, parentUserName)
     }
 }
 
+// ===== UI Helper Functions =====
+function updateHeaderAvatar() {
+    if (!APP_STATE.currentUser) return;
+
+    const avatarHTML = APP_STATE.currentUser.avatarImage
+        ? `<img src="${APP_STATE.currentUser.avatarImage}" alt="Avatar">`
+        : APP_STATE.currentUser.avatar || '👤';
+
+    elements.headerAvatar.innerHTML = avatarHTML;
+}
+
+async function deleteComment(photoId, commentId) {
+    if (!confirm('Bạn có chắc muốn xóa bình luận này?')) {
+        return;
+    }
+
+    try {
+        await db.collection('photos').doc(photoId)
+            .collection('comments').doc(commentId).delete();
+    } catch (error) {
+        console.error('Delete comment error:', error);
+        alert('Lỗi khi xóa bình luận: ' + error.message);
+    }
+}
+
+// ===== Camera & Theme Functions =====
+async function flipCamera() {
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+    }
+
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: currentFacingMode },
+            audio: false
+        });
+        elements.cameraPreview.srcObject = stream;
+        currentStream = stream;
+    } catch (error) {
+        console.error('Camera flip error:', error);
+        alert('Không thể chuyển camera.');
+        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    elements.themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+}
+
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (elements.themeToggle) {
+        elements.themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
+}
+
 // ===== Start Application =====
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    init();
+});
