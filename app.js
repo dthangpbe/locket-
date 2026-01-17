@@ -738,8 +738,31 @@ function showCameraMessage(msg, type = 'info') {
     alert(msg);
 }
 
+// ✅ FIX: clear mirror ở video + các wrapper rồi chỉ mirror khi là camera trước
 function applyPreviewMirror(mode) {
-    elements.cameraPreview.style.transform = (mode === 'user') ? 'scaleX(-1)' : 'none';
+    const v = elements.cameraPreview;
+    const shouldMirror = (mode === 'user');
+
+    // Clear transform trên video
+    v.style.transform = 'none';
+    v.style.webkitTransform = 'none';
+
+    // Clear transform trên các parent (tránh CSS mirror ở wrapper)
+    const box = v.closest('.camera-box');
+    const container = v.closest('.camera-container');
+    const section = v.closest('.camera-section');
+
+    [box, container, section].forEach(el => {
+        if (!el) return;
+        el.style.transform = 'none';
+        el.style.webkitTransform = 'none';
+    });
+
+    // Apply mirror chỉ khi camera trước
+    if (shouldMirror) {
+        v.style.transform = 'scaleX(-1)';
+        v.style.webkitTransform = 'scaleX(-1)';
+    }
 }
 
 async function getStreamWithExactThenIdeal(mode) {
@@ -785,9 +808,14 @@ async function initCamera() {
 
         currentStream = stream;
         elements.cameraPreview.srcObject = currentStream;
+
+        // ✅ FIX: ép video refresh (một số máy giữ frame/transform cũ)
+        elements.cameraPreview.pause?.();
+        elements.cameraPreview.play?.();
+
         APP_STATE.stream = currentStream;
 
-        // ✅ Mirror preview theo currentFacingMode (đừng tin settings.facingMode)
+        // ✅ Mirror preview theo currentFacingMode
         applyPreviewMirror(currentFacingMode);
 
         if (usedFallback) {
@@ -829,6 +857,11 @@ async function flipCamera() {
 
         currentStream = stream;
         elements.cameraPreview.srcObject = currentStream;
+
+        // ✅ FIX: ép video refresh
+        elements.cameraPreview.pause?.();
+        elements.cameraPreview.play?.();
+
         APP_STATE.stream = currentStream;
 
         // ✅ Mirror preview theo currentFacingMode
