@@ -724,28 +724,77 @@ function renderSuggestedFriends() {
 }
 
 // ===== Camera Functions =====
-async function initCamera() {
+
+// Helpers: exact -> nếu lỗi thì fallback ideal + thông báo
+function showCameraMessage(msg, type = 'info') {
+    // Nếu bạn có element để hiển thị message thì dùng (không có thì alert)
+    if (elements && elements.cameraMsg) {
+        elements.cameraMsg.textContent = msg;
+        elements.cameraMsg.style.display = 'block';
+        elements.cameraMsg.dataset.type = type; // bạn tự style theo type nếu muốn
+        return;
+    }
+    console[type === 'error' ? 'error' : 'log']('[Camera]', msg);
+    alert(msg);
+}
+
+function applyPreviewMirror(mode) {
+    elements.cameraPreview.style.transform = (mode === 'user') ? 'scaleX(-1)' : 'none';
+}
+
+async function getStreamWithExactThenIdeal(mode) {
+    const baseVideo = {
+        width: { ideal: 1080 },
+        height: { ideal: 1080 }
+    };
+
+    // 1) Try EXACT
     try {
-        const constraints = {
-            video: {
-                width: { ideal: 1080 },
-                height: { ideal: 1080 },
-                facingMode: 'user'
-            },
+        const exactConstraints = {
+            video: { ...baseVideo, facingMode: { exact: mode } },
             audio: false
         };
+        const stream = await navigator.mediaDevices.getUserMedia(exactConstraints);
+        return { stream, usedFallback: false };
+    } catch (err) {
+        const name = err?.name || '';
+        const isConstraintFail =
+            name === 'OverconstrainedError' ||
+            name === 'ConstraintNotSatisfiedError' ||
+            name === 'NotFoundError';
 
-        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        // Nếu là lỗi quyền/https... thì không retry
+        if (!isConstraintFail) throw err;
+
+        // 2) Fallback IDEAL
+        const idealConstraints = {
+            video: { ...baseVideo, facingMode: { ideal: mode } },
+            audio: false
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(idealConstraints);
+        return { stream, usedFallback: true, exactError: err };
+    }
+}
+
+async function initCamera() {
+    try {
+        // ✅ FIX: đảm bảo biến trạng thái được set ngay từ đầu
+        currentFacingMode = 'user';
+
+        const { stream, usedFallback } = await getStreamWithExactThenIdeal(currentFacingMode);
+
+        currentStream = stream;
         elements.cameraPreview.srcObject = currentStream;
         APP_STATE.stream = currentStream;
 
-        // Check actual camera and mirror ONLY front camera
-        const track = currentStream.getVideoTracks()[0];
-        const settings = track.getSettings();
-        if (settings.facingMode === 'user') {
-            elements.cameraPreview.style.transform = 'scaleX(-1)';
-        } else {
-            elements.cameraPreview.style.transform = 'scaleX(1)';
+        // ✅ Mirror preview theo currentFacingMode (đừng tin settings.facingMode)
+        applyPreviewMirror(currentFacingMode);
+
+        if (usedFallback) {
+            showCameraMessage(
+                'Không thể ép camera (exact). Đã chuyển sang chế độ dự phòng (ideal) — có thể không đúng camera bạn chọn.',
+                'info'
+            );
         }
     } catch (error) {
         console.error('Camera error:', error);
@@ -757,6 +806,12 @@ async function initCamera() {
                 <p style="color: #b4b4c8; font-size: 0.9rem; margin-top: 0.5rem;">Vui lòng cấp quyền camera hoặc sử dụng HTTPS/localhost</p>
             </div>
         `;
+
+        if (error?.name === 'NotAllowedError') {
+            showCameraMessage('Bạn đã từ chối quyền camera. Hãy cấp quyền để sử dụng.', 'error');
+        } else {
+            showCameraMessage('Không thể mở camera. Vui lòng thử lại hoặc đổi trình duyệt.', 'error');
+        }
     }
 }
 
@@ -767,32 +822,33 @@ async function flipCamera() {
             currentStream.getTracks().forEach(track => track.stop());
         }
 
+        // ✅ FIX: toggle dựa trên currentFacingMode
         currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
 
-        const constraints = {
-            video: {
-                width: { ideal: 1080 },
-                height: { ideal: 1080 },
-                facingMode: currentFacingMode
-            },
-            audio: false
-        };
+        const { stream, usedFallback } = await getStreamWithExactThenIdeal(currentFacingMode);
 
-        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        currentStream = stream;
         elements.cameraPreview.srcObject = currentStream;
         APP_STATE.stream = currentStream;
 
-        // Check ACTUAL camera track and mirror ONLY front camera
-        const track = currentStream.getVideoTracks()[0];
-        const settings = track.getSettings();
-        if (settings.facingMode === 'user') {
-            elements.cameraPreview.style.transform = 'scaleX(-1)';
-        } else {
-            elements.cameraPreview.style.transform = 'scaleX(1)';
+        // ✅ Mirror preview theo currentFacingMode
+        applyPreviewMirror(currentFacingMode);
+
+        if (usedFallback) {
+            const wantText = currentFacingMode === 'environment' ? 'camera sau' : 'camera trước';
+            showCameraMessage(
+                `Không thể ép ${wantText} (exact). Đã chuyển sang chế độ dự phòng (ideal) — có thể máy đã chọn camera khác.`,
+                'info'
+            );
         }
     } catch (error) {
         console.error('Flip camera error:', error);
-        alert('Không thể chuyển camera');
+
+        if (error?.name === 'NotAllowedError') {
+            showCameraMessage('Bạn chưa cấp quyền camera nên không thể chuyển.', 'error');
+        } else {
+            showCameraMessage('Không thể chuyển camera. Vui lòng thử lại.', 'error');
+        }
     }
 }
 
@@ -819,17 +875,18 @@ function capturePhoto() {
     canvas.width = width;
     canvas.height = height;
 
-    // Flip canvas ONLY for front camera (to un-mirror)
-    if (currentStream) {
-        const track = currentStream.getVideoTracks()[0];
-        const settings = track.getSettings();
-        if (settings.facingMode === 'user') {
-            ctx.translate(width, 0);
-            ctx.scale(-1, 1);
-        }
+    // ✅ FIX: reset transform để không bị "dính" flip giữa các lần chụp
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.save();
+
+    // ✅ UN-mirror khi chụp từ camera trước (preview đang mirror)
+    if (currentFacingMode === 'user') {
+        ctx.translate(width, 0);
+        ctx.scale(-1, 1);
     }
 
     ctx.drawImage(video, 0, 0, width, height);
+    ctx.restore();
 
     // Lower quality to reduce size (0.7 instead of 0.9)
     const imageData = canvas.toDataURL('image/jpeg', 0.7);
