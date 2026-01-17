@@ -811,7 +811,7 @@ function capturePhoto() {
     canvas.width = width;
     canvas.height = height;
 
-    // Flip canvas horizontally to correct mirrored preview
+    // Always flip canvas to un-mirror preview (both cameras mirrored)
     ctx.translate(width, 0);
     ctx.scale(-1, 1);
 
