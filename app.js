@@ -2036,7 +2036,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Populate friend filter dropdown with user's friends
-async function populateFriendFilter() {
+window.populateFriendFilter = async function () {
     if (!APP_STATE.currentUser) return;
 
     const friendFilter = document.getElementById('friendFilter');
