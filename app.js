@@ -7,7 +7,8 @@ const APP_STATE = {
     unsubscribers: [], // Store Firestore listeners for cleanup
     currentPhotoData: null,
     currentReactionPhotoId: null,
-    stream: null
+    stream: null,
+    selectedFriendFilter: 'all' // Filter feed by friend
 };
 
 // Camera state
@@ -2019,4 +2020,78 @@ document.addEventListener('DOMContentLoaded', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
+
+    // Friend filter setup
+    const friendFilter = document.getElementById('friendFilter');
+    if (friendFilter) {
+        friendFilter.addEventListener('change', handleFriendFilterChange);
+    }
 });
+
+// Populate friend filter dropdown with user's friends
+async function populateFriendFilter() {
+    if (!APP_STATE.currentUser) return;
+
+    const friendFilter = document.getElementById('friendFilter');
+    if (!friendFilter) return;
+
+    try {
+        // Get user's friends
+        const friendsSnapshot = await db.collection('users')
+            .doc(APP_STATE.currentUser.uid)
+            .collection('friends')
+            .where('status', '==', 'accepted')
+            .get();
+
+        // Clear existing options except "All Friends"
+        friendFilter.innerHTML = '<option value="all">Tất cả bạn bè</option>';
+
+        // Add friend options
+        for (const friendDoc of friendsSnapshot.docs) {
+            const friendData = friendDoc.data();
+            const friendId = friendDoc.id;
+
+            // Get friend's user data
+            const friendUserDoc = await db.collection('users').doc(friendId).get();
+            if (friendUserDoc.exists) {
+                const friendUser = friendUserDoc.data();
+                const option = document.createElement('option');
+                option.value = friendId;
+                option.textContent = `${friendUser.username} (${friendUser.accountId})`;
+                friendFilter.appendChild(option);
+            }
+        }
+    } catch (error) {
+        console.error('Error populating friend filter:', error);
+    }
+}
+
+// Handle friend filter change
+function handleFriendFilterChange(e) {
+    APP_STATE.selectedFriendFilter = e.target.value;
+    filterPhotoFeed();
+}
+
+// Filter photo feed based on selected friend
+function filterPhotoFeed() {
+    const photoFeed = document.getElementById('photoFeed');
+    if (!photoFeed) return;
+
+    const selectedFilter = APP_STATE.selectedFriendFilter;
+    const photoCards = photoFeed.querySelectorAll('.photo-card');
+
+    photoCards.forEach(card => {
+        if (selectedFilter === 'all') {
+            // Show all photos
+            card.style.display = '';
+        } else {
+            // Show only selected friend's photos
+            const photoUserId = card.dataset.userId;
+            if (photoUserId === selectedFilter) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        }
+    });
+}
