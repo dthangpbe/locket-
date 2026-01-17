@@ -1036,7 +1036,7 @@ async function renderFeed(photoDocs) {
             : `<span>${userAvatar}</span>`;
 
         return `
-            <div class="photo-card">
+            <div class="photo-card" data-user-id="${photo.userId}">
                 <div class="photo-card-header">
                     <div class="user-avatar" onclick="viewUserProfile('${photo.userId}')" style="cursor: pointer;">
                         ${avatarHTML}
