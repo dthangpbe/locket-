@@ -725,63 +725,34 @@ function renderSuggestedFriends() {
 
 // ===== Camera Functions =====
 
-// Lưu camera thực tế đang chạy (để mirror/capture chuẩn, kể cả khi fallback)
-let activeFacingMode = 'user';
-
 // Helpers: exact -> nếu lỗi thì fallback ideal + thông báo
 function showCameraMessage(msg, type = 'info') {
+    // Nếu bạn có element để hiển thị message thì dùng (không có thì alert)
     if (elements && elements.cameraMsg) {
         elements.cameraMsg.textContent = msg;
         elements.cameraMsg.style.display = 'block';
-        elements.cameraMsg.dataset.type = type;
+        elements.cameraMsg.dataset.type = type; // bạn tự style theo type nếu muốn
         return;
     }
     console[type === 'error' ? 'error' : 'log']('[Camera]', msg);
-    // nếu không muốn alert thì comment dòng dưới
+    // Nếu không muốn popup thì comment dòng dưới:
     // alert(msg);
 }
 
-// ✅ Set style với !important để đè CSS mirror ở bất kỳ đâu
-function setTransformImportant(el, value) {
-    if (!el) return;
-    el.style.setProperty('transform', value, 'important');
-    el.style.setProperty('-webkit-transform', value, 'important');
-}
-
-// ✅ Detect camera thật sự (settings.facingMode nếu có, không thì dựa label)
-function detectActualFacing(track, desiredMode) {
-    const s = track?.getSettings?.() || {};
-    if (s.facingMode === 'user' || s.facingMode === 'environment') return s.facingMode;
-
-    const label = (track?.label || '').toLowerCase();
-    if (/(front|user|face|self)/.test(label)) return 'user';
-    if (/(back|rear|environment)/.test(label)) return 'environment';
-
-    return desiredMode; // fallback cuối
-}
-
-// ✅ FIX: clear mirror ở video + wrapper rồi chỉ mirror khi là camera trước
+// ✅ Mirror bằng class + CSS !important (ổn định nhất)
 function applyPreviewMirror(mode) {
     const v = elements.cameraPreview;
-    const shouldMirror = (mode === 'user');
+    if (!v) return;
 
-    // Clear transform trên video
-    setTransformImportant(v, 'none');
-
-    // Clear transform trên các parent (tránh CSS mirror ở wrapper)
-    const box = v.closest('.camera-box');
-    const container = v.closest('.camera-container');
-    const section = v.closest('.camera-section');
-    [box, container, section].forEach(el => setTransformImportant(el, 'none'));
-
-    // Apply mirror chỉ khi camera trước
-    if (shouldMirror) {
-        setTransformImportant(v, 'scaleX(-1)');
-    }
+    if (mode === 'user') v.classList.add('mirror');
+    else v.classList.remove('mirror');
 }
 
 async function getStreamWithExactThenIdeal(mode) {
-    const baseVideo = { width: { ideal: 1080 }, height: { ideal: 1080 } };
+    const baseVideo = {
+        width: { ideal: 1080 },
+        height: { ideal: 1080 }
+    };
 
     // 1) Try EXACT
     try {
@@ -813,24 +784,24 @@ async function getStreamWithExactThenIdeal(mode) {
 
 async function initCamera() {
     try {
+        // ✅ FIX: đảm bảo biến trạng thái được set ngay từ đầu
         currentFacingMode = 'user';
 
         const { stream, usedFallback } = await getStreamWithExactThenIdeal(currentFacingMode);
 
         currentStream = stream;
+
+        // ✅ set mirror trước để tránh nháy
+        applyPreviewMirror(currentFacingMode);
+
+        // ✅ apply lại đúng thời điểm stream mới load vào video
+        elements.cameraPreview.onloadedmetadata = async () => {
+            applyPreviewMirror(currentFacingMode);
+            try { await elements.cameraPreview.play(); } catch { }
+        };
+
         elements.cameraPreview.srcObject = currentStream;
-
-        // ép refresh khung hình
-        elements.cameraPreview.pause?.();
-        elements.cameraPreview.play?.();
-
         APP_STATE.stream = currentStream;
-
-        // ✅ Detect camera thật để mirror đúng kể cả fallback
-        const track = currentStream.getVideoTracks()[0];
-        activeFacingMode = detectActualFacing(track, currentFacingMode);
-
-        applyPreviewMirror(activeFacingMode);
 
         if (usedFallback) {
             showCameraMessage(
@@ -842,12 +813,12 @@ async function initCamera() {
         console.error('Camera error:', error);
         elements.cameraPreview.style.display = 'none';
         elements.cameraPreview.parentElement.innerHTML = `
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:2rem;text-align:center;">
-        <div style="font-size:3rem;margin-bottom:1rem;">📷</div>
-        <p style="color:#b4b4c8;">Không thể truy cập camera</p>
-        <p style="color:#b4b4c8;font-size:0.9rem;margin-top:0.5rem;">Vui lòng cấp quyền camera hoặc sử dụng HTTPS/localhost</p>
-      </div>
-    `;
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📷</div>
+                <p style="color: #b4b4c8;">Không thể truy cập camera</p>
+                <p style="color: #b4b4c8; font-size: 0.9rem; margin-top: 0.5rem;">Vui lòng cấp quyền camera hoặc sử dụng HTTPS/localhost</p>
+            </div>
+        `;
 
         if (error?.name === 'NotAllowedError') {
             showCameraMessage('Bạn đã từ chối quyền camera. Hãy cấp quyền để sử dụng.', 'error');
@@ -860,25 +831,28 @@ async function initCamera() {
 // Flip between front and rear camera
 async function flipCamera() {
     try {
-        if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+        }
 
-        currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+        // ✅ toggle dựa trên currentFacingMode
+        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
 
         const { stream, usedFallback } = await getStreamWithExactThenIdeal(currentFacingMode);
 
         currentStream = stream;
+
+        // ✅ set mirror trước để tránh nháy
+        applyPreviewMirror(currentFacingMode);
+
+        // ✅ apply lại đúng thời điểm stream mới load vào video
+        elements.cameraPreview.onloadedmetadata = async () => {
+            applyPreviewMirror(currentFacingMode);
+            try { await elements.cameraPreview.play(); } catch { }
+        };
+
         elements.cameraPreview.srcObject = currentStream;
-
-        elements.cameraPreview.pause?.();
-        elements.cameraPreview.play?.();
-
         APP_STATE.stream = currentStream;
-
-        // ✅ Detect camera thật để mirror đúng (tránh trường hợp fallback vẫn ra cam trước)
-        const track = currentStream.getVideoTracks()[0];
-        activeFacingMode = detectActualFacing(track, currentFacingMode);
-
-        applyPreviewMirror(activeFacingMode);
 
         if (usedFallback) {
             const wantText = currentFacingMode === 'environment' ? 'camera sau' : 'camera trước';
@@ -921,12 +895,12 @@ function capturePhoto() {
     canvas.width = width;
     canvas.height = height;
 
-    // reset transform để không bị dính
+    // ✅ reset transform để không bị "dính" flip giữa các lần chụp
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.save();
 
-    // ✅ UN-mirror khi chụp từ camera trước (dựa vào activeFacingMode)
-    if (activeFacingMode === 'user') {
+    // ✅ UN-mirror khi chụp từ camera trước (preview đang mirror)
+    if (currentFacingMode === 'user') {
         ctx.translate(width, 0);
         ctx.scale(-1, 1);
     }

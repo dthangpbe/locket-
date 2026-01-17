@@ -412,6 +412,18 @@ body {
     object-fit: cover;
 }
 
+/* Force: mặc định KHÔNG mirror */
+#cameraPreview {
+    transform: none !important;
+    -webkit-transform: none !important;
+}
+
+/* Chỉ mirror khi là camera trước */
+#cameraPreview.mirror {
+    transform: scaleX(-1) !important;
+    -webkit-transform: scaleX(-1) !important;
+}
+
 .captured-photo {
     position: absolute;
     top: 0;
@@ -966,7 +978,9 @@ body {
 
 .empty-state p {
     font-size: 1.1rem;
-}/* ===== Profile Modal Styles ===== */
+}
+
+/* ===== Profile Modal Styles ===== */
 .profile-modal {
     max-width: 550px;
 }
@@ -1193,6 +1207,7 @@ body {
         font-size: 3rem;
     }
 }
+
 /* ===== Comments Section Styles ===== */
 .comments-section {
     margin-top: 1rem;
@@ -1342,6 +1357,7 @@ body {
 .photo-card-image {
     position: relative;
 }
+
 /* ===== Notification Styles ===== */
 .notif-badge {
     position: absolute;
@@ -1519,6 +1535,7 @@ body {
 .comment-avatar:hover {
     transform: scale(1.1);
 }
+
 /* Header Avatar */
 .header-avatar {
     width: 32px;
@@ -1553,6 +1570,7 @@ body {
 .comment-delete:hover {
     color: #f5576c;
 }
+
 /* Dark Mode Variables */
 :root {
     --theme-icon: '🌙';
@@ -1583,6 +1601,7 @@ body {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
 }
+
 /* ===== Mobile Responsive Optimizations ===== */
 
 /* Mobile adjustments */
@@ -1710,6 +1729,7 @@ body {
         min-height: 60px;
     }
 }
+
 /* ===== Mobile Header Fix ===== */
 @media (max-width: 768px) {
     .header-content {
@@ -1803,6 +1823,7 @@ body {
 .flip-camera-btn:active {
     transform: scale(0.95);
 }
+
 /* ===== PERFECT HEADER ALIGNMENT ===== */
 .header-content {
     display: flex;
@@ -1936,6 +1957,7 @@ body {
         font-size: 1.2rem;
     }
 }
+
 /* ===== FINAL CAMERA LAYOUT FIX ===== */
 
 /* Force camera overlay to bottom center */
@@ -2053,6 +2075,7 @@ body {
         font-size: 1.2rem !important;
     }
 }
+
 /* ===== Photo Post UI Fixes ===== */
 
 /* Fix reaction button spacing */
@@ -2104,6 +2127,7 @@ body {
         font-size: 14px !important;
     }
 }
+
 /* ===== SEND BUTTON FIX ===== */
 .comment-input button,
 .reply-input button {
@@ -2152,6 +2176,7 @@ body {
         min-width: 55px !important;
     }
 }
+
 /* ===== COMMENT INPUT CONTAINER FIX ===== */
 .comment-input,
 .reply-input {
@@ -2177,6 +2202,7 @@ body {
 .photo-card-content {
     overflow: visible !important;
 }
+
 /* ===== COMPLETE DARK MODE THEME ===== */
 
 /* Light mode (default) */
@@ -2291,6 +2317,7 @@ input::placeholder {
 .profile-edit-section {
     background: var(--bg-tertiary) !important;
 }
+
 /* ===== FIX REACTIONS MODAL CENTER ===== */
 .reactions-modal {
     position: fixed !important;
@@ -2339,6 +2366,7 @@ input::placeholder {
         height: 55px !important;
     }
 }
+
 /* ===== ALBUMS STYLES ===== */
 
 /* Albums grid layout */
