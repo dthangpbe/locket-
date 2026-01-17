@@ -782,8 +782,10 @@ async function flipCamera() {
         elements.cameraPreview.srcObject = currentStream;
         APP_STATE.stream = currentStream;
 
-        // Apply mirror ONLY for front camera
-        if (currentFacingMode === 'user') {
+        // Check ACTUAL camera track and mirror ONLY front camera
+        const track = currentStream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        if (settings.facingMode === 'user') {
             elements.cameraPreview.style.transform = 'scaleX(-1)';
         } else {
             elements.cameraPreview.style.transform = 'scaleX(1)';
