@@ -2025,6 +2025,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const friendFilter = document.getElementById('friendFilter');
     if (friendFilter) {
         friendFilter.addEventListener('change', handleFriendFilterChange);
+
+        // Auto-populate friend list after short delay
+        setTimeout(() => {
+            if (APP_STATE.currentUser) {
+                populateFriendFilter();
+            }
+        }, 1000);
     }
 });
 
