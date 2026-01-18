@@ -2991,8 +2991,13 @@ input::placeholder {
     }
 
     .image-zoom-close {
-        top: 1rem;
-        right: 1rem;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.8rem;
+        background: rgba(0, 0, 0, 0.9);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     }
 }
 
