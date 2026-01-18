@@ -1086,7 +1086,7 @@ async function renderFeed(photoDocs, shouldAnimate = false) {
                 </div>
                 <div class="photo-card-image">
                     ${photo.userId === APP_STATE.currentUser.uid ? `<button class="delete-photo-btn" onclick="deletePhoto('${photo.id}')">🗑️ Xóa</button>` : ''}
-                    <img src="${photo.image}" alt="Photo">
+                    <img src="${photo.image}" alt="Photo" onclick="openImageZoom('${photo.image}')" style="cursor: pointer;">
                 </div>
                 <div class="photo-card-content">
                     ${photo.caption ? `<p class="photo-caption">${photo.caption}</p>` : ''}
@@ -1940,7 +1940,7 @@ async function openAlbum(albumId, albumName, photoCount) {
                     const photo = doc.data();
                     return `
                         <div class="album-photo-item">
-                            <img src="${photo.image}" alt="Photo">
+                            <img src="${photo.image}" alt="Photo" onclick="openImageZoom('${photo.image}')" style="cursor: pointer;">
                             <button class="remove-from-album-btn" 
                                 onclick="removePhotoFromAlbum('${albumId}', '${doc.id}', event)">
                                 🗑️
