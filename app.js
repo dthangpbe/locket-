@@ -163,11 +163,11 @@ function setupEventListeners() {
         btn.addEventListener('click', (e) => switchTab(e.target.dataset.tab));
     });
 
-    // Albums
-    document.getElementById('albumsBtn').addEventListener('click', () => {
-        renderAlbums();
-        openModal(elements.albumsModal);
-    });
+    // Albums - now handled by hamburger menu
+    // document.getElementById('albumsBtn').addEventListener('click', () => {
+    //     renderAlbums();
+    //     openModal(elements.albumsModal);
+    // });
 
     document.getElementById('createAlbumBtn').addEventListener('click', () => {
         document.getElementById('albumName').value = '';
