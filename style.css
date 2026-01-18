@@ -2913,7 +2913,7 @@ input::placeholder {
     }
 
     .photo-feed.grid-view .photo-card {
-        border-radius: 0;
+        border-radius: 8px;
     }
 }
 
