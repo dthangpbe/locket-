@@ -1,4 +1,3 @@
-```javascript
 // ===== FIREBASE LOCKET APP - REAL-TIME VERSION =====
 // Uses Firebase Auth + Firestore for real online connections
 
@@ -97,7 +96,7 @@ const elements = {
 // ===== Unique ID Generation =====
 function generateAccountId(username) {
     const randomNum = Math.floor(10000 + Math.random() * 90000);
-    return `@${ username.toLowerCase() } -${ randomNum } `;
+    return `@${username.toLowerCase()} -${randomNum} `;
 }
 
 function getRandomAvatar() {
@@ -315,7 +314,7 @@ async function handleRegister() {
         }
 
         // Create Firebase Auth account
-        const email = `${ accountId.replace('@', '') } @locket.app`;
+        const email = `${accountId.replace('@', '')} @locket.app`;
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
@@ -336,7 +335,7 @@ async function handleRegister() {
 
     } catch (error) {
         console.error('Registration error:', error);
-        elements.regError.textContent = `Lỗi: ${ error.message } `;
+        elements.regError.textContent = `Lỗi: ${error.message} `;
     }
 }
 
@@ -361,7 +360,7 @@ async function handleLogin() {
 
         if (usernameOrId.startsWith('@')) {
             // Login with account ID
-            email = `${ usernameOrId.replace('@', '') } @locket.app`;
+            email = `${usernameOrId.replace('@', '')} @locket.app`;
         } else {
             // Login with username - need to find the email
             const userQuery = await db.collection('users')
@@ -385,7 +384,7 @@ async function handleLogin() {
         if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
             elements.loginError.textContent = 'Tên người dùng hoặc mật khẩu không đúng!';
         } else {
-            elements.loginError.textContent = `Lỗi: ${ error.message } `;
+            elements.loginError.textContent = `Lỗi: ${error.message} `;
         }
     }
 }
@@ -558,7 +557,7 @@ async function handleFriendSearch() {
         if (userQuery.empty) {
             elements.searchResults.innerHTML = `
     < div class="search-no-results" >
-                    ❌ Không tìm thấy tài khoản với ID: ${ searchQuery }
+                    ❌ Không tìm thấy tài khoản với ID: ${searchQuery}
                 </div >
     `;
             return;
@@ -615,7 +614,7 @@ async function handleFriendSearch() {
         console.error('Friend search error:', error);
         elements.searchResults.innerHTML = `
     < div class="search-no-results" >
-                ❌ Lỗi tìm kiếm: ${ error.message }
+                ❌ Lỗi tìm kiếm: ${error.message}
             </div >
     `;
     }
@@ -637,7 +636,7 @@ async function addFriendByUid(friendUid, accountId, displayName, avatar) {
         elements.friendSearchInput.value = '';
         elements.searchResults.innerHTML = `
     < div class="search-no-results" style = "color: #43e97b;" >
-                ✅ Đã gửi lời mời kết bạn tới ${ displayName } !
+                ✅ Đã gửi lời mời kết bạn tới ${displayName} !
             </div >
     `;
 
@@ -877,7 +876,7 @@ async function flipCamera() {
         if (usedFallback) {
             const wantText = currentFacingMode === 'environment' ? 'camera sau' : 'camera trước';
             showCameraMessage(
-                `Không thể ép ${ wantText } (exact).Đã chuyển sang chế độ dự phòng(ideal) — có thể máy đã chọn camera khác.`,
+                `Không thể ép ${wantText} (exact).Đã chuyển sang chế độ dự phòng(ideal) — có thể máy đã chọn camera khác.`,
                 'info'
             );
         }
@@ -1085,7 +1084,7 @@ async function renderFeed(photoDocs, shouldAnimate = false) {
         // Render avatar (image or emoji)
         const avatarHTML = userAvatarImage
             ? `< img src = "${userAvatarImage}" alt = "Avatar" style = "width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" > `
-            : `< span > ${ userAvatar }</span > `;
+            : `< span > ${userAvatar}</span > `;
 
         return `
     < div class="photo-card" data - user - id="${photo.userId}" >
@@ -1143,9 +1142,9 @@ function formatTimestamp(timestamp) {
     const days = Math.floor(diff / 86400000);
 
     if (minutes < 1) return 'Vừa xong';
-    if (minutes < 60) return `${ minutes } phút trước`;
-    if (hours < 24) return `${ hours } giờ trước`;
-    if (days < 7) return `${ days } ngày trước`;
+    if (minutes < 60) return `${minutes} phút trước`;
+    if (hours < 24) return `${hours} giờ trước`;
+    if (days < 7) return `${days} ngày trước`;
 
     return date.toLocaleDateString('vi-VN');
 }
@@ -1167,15 +1166,14 @@ function setupReactionsListener(photoId) {
             reactions[data.emoji].push(data.userName);
         });
 
-        const container = document.getElementById(`reactionsContainer - ${ photoId } `);
+        const container = document.getElementById(`reactionsContainer - ${photoId} `);
         if (container) {
             container.innerHTML = `
     < div class="reactions-display" >
-        ${
-            Object.entries(reactions).map(([emoji, users]) =>
+        ${Object.entries(reactions).map(([emoji, users]) =>
                 `<div class="reaction-item">${emoji} ${users.length}</div>`
             ).join('')
-}
+                }
                 </div >
     `;
         }
@@ -1424,7 +1422,7 @@ function removeAvatar() {
 
 function updateBioCharCount() {
     const length = elements.editBio.value.length;
-    elements.bioCharCount.textContent = `${ length }/150`;
+    elements.bioCharCount.textContent = `${length}/150`;
 }
 
 async function saveProfile() {
