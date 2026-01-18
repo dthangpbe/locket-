@@ -2210,10 +2210,11 @@ document.getElementById('menuLogoutBtn')?.addEventListener('click', () => {
 
 // Update badge counts in menu
 function updateMenuBadges() {
-    const friendCount = document.querySelector('.friend-count')?.textContent || '0';
-    const menuFriendCount = document.getElementById('menuFriendCount');
-    if (menuFriendCount) {
-        menuFriendCount.textContent = friendCount;
+    const friendCountElement = document.getElementById('menuFriendCount');
+    const headerFriendCount = document.querySelector('.friend-count');
+
+    if (friendCountElement && headerFriendCount) {
+        friendCountElement.textContent = headerFriendCount.textContent;
     }
 
     const notifBadge = document.getElementById('notifBadge');
