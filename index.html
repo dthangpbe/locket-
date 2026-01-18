@@ -366,6 +366,24 @@
         </div>
     </div>
 
+    <!-- Reactions Modal -->
+    <div id="reactionsModal" class="modal">
+        <div class="modal-content">
+            <h3>Thả cảm xúc 😊</h3>
+            <div class="reaction-emojis">
+                <button onclick="addReaction('❤️')" class="emoji-btn">❤️</button>
+                <button onclick="addReaction('😂')" class="emoji-btn">😂</button>
+                <button onclick="addReaction('😮')" class="emoji-btn">😮</button>
+                <button onclick="addReaction('😢')" class="emoji-btn">😢</button>
+                <button onclick="addReaction('👍')" class="emoji-btn">👍</button>
+                <button onclick="addReaction('🔥')" class="emoji-btn">🔥</button>
+                <button onclick="addReaction('🎉')" class="emoji-btn">🎉</button>
+                <button onclick="addReaction('💯')" class="emoji-btn">💯</button>
+            </div>
+            <button class="close-modal" onclick="closeModal(document.getElementById('reactionsModal'))">×</button>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
