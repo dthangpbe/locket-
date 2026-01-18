@@ -1816,14 +1816,20 @@ function toggleTheme() {
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
 
-    elements.themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    // Update menu theme icon instead of deleted header button
+    const menuThemeIcon = document.getElementById('menuThemeIcon');
+    if (menuThemeIcon) {
+        menuThemeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    }
 }
 
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    if (elements.themeToggle) {
-        elements.themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    // Update menu theme icon
+    const menuThemeIcon = document.getElementById('menuThemeIcon');
+    if (menuThemeIcon) {
+        menuThemeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
     }
 }
 
