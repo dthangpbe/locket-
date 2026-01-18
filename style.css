@@ -2543,7 +2543,9 @@ input::placeholder {
 
 .secondary-btn:hover {
     background: var(--bg-secondary);
-}/* Friend Search Results Styling */
+}
+
+/* Friend Search Results Styling */
 .search-results {
     margin-top: 1rem;
     max-height: 400px;
@@ -2552,19 +2554,19 @@ input::placeholder {
 
 .search-result-item {
     display: flex;
-    align-items: center;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
     padding: 1rem;
     background: var(--card-bg);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
     margin-bottom: 0.75rem;
-    transition: all 0.3s ease;
 }
 
-.search-result-item:hover {
-    background: var(--glass-bg);
-    transform: translateX(4px);
+.search-result-item>div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .search-result-item .friend-avatar {
@@ -2582,38 +2584,34 @@ input::placeholder {
 
 .search-result-item .friend-info {
     flex: 1;
-    min-width: 0;
-    /* Allow text to shrink */
 }
 
 .search-result-item .friend-info h4 {
-    font-size: 1.1rem;
-    margin-bottom: 0.25rem;
+    font-size: 1rem;
+    margin: 0 0 0.25rem 0;
     color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .search-result-item .friend-info p {
     font-size: 0.9rem;
     color: var(--text-secondary);
+    margin: 0;
 }
 
 .search-result-item .friend-action {
-    padding: 0.75rem 1.5rem;
+    width: 100%;
+    padding: 0.75rem;
     background: var(--primary-gradient);
     color: white;
     border: none;
     border-radius: var(--radius-sm);
     font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    white-space: nowrap;
-    min-width: fit-content;
 }
 
-.search-result-item .friend-action:hover {
+.search-result-item .friend-action:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
@@ -2621,7 +2619,7 @@ input::placeholder {
 .search-result-item .friend-action:disabled {
     background: var(--glass-bg);
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.6;
 }
 
 .search-no-results {
