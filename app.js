@@ -1083,18 +1083,18 @@ async function renderFeed(photoDocs, shouldAnimate = false) {
 
         // Render avatar (image or emoji)
         const avatarHTML = userAvatarImage
-            ? `< img src = "${userAvatarImage}" alt = "Avatar" style = "width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" > `
-            : `< span > ${userAvatar}</span > `;
+            ? `<img src="${userAvatarImage}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+            : `<span>${userAvatar}</span>`;
 
         return `
-    < div class="photo-card" data - user - id="${photo.userId}" >
+            <div class="photo-card" data-user-id="${photo.userId}">
                 <div class="photo-card-header">
                     <div class="user-avatar" onclick="viewUserProfile('${photo.userId}')" style="cursor: pointer;">
                         ${avatarHTML}
                     </div>
                     <div class="user-info">
-                        <h3 onclick="viewUserProfile('${photo.userId}')" style="cursor: pointer;">${userName}</h3>
-                        <p>${formatTimestamp(photo.timestamp || photo.createdAt)}</p>
+                        <div class="user-name">${userName}</div>
+                        <div class="photo-time">${formatTimestamp(photo.timestamp)}</div>
                     </div>
                 </div>
                 <div class="photo-card-image">
@@ -1120,7 +1120,7 @@ async function renderFeed(photoDocs, shouldAnimate = false) {
                         <div id="commentCount-${photo.id}" class="comment-count"></div>
                     </div>
                 </div>
-            </div >
+            </div>
     `;
     }).join('');
 
