@@ -972,6 +972,8 @@ async function postPhoto() {
 }
 
 // ===== Photos Feed =====
+let previousPhotoSnapshot = null;
+
 function setupPhotosListener() {
     // Simple approach: Listen to ALL photos and filter client-side
     // This avoids Firestore 'in' query limitations
@@ -996,13 +998,24 @@ function setupPhotosListener() {
             return friendUids.includes(data.userId) || friendAccountIds.includes(data.accountId);
         });
 
-        renderFeed(friendPhotos);
+        // Check if this is a new photo from current user (for animation)
+        let shouldAnimate = false;
+        if (previousPhotoSnapshot) {
+            const newDocs = snapshot.docChanges().filter(change => change.type === 'added');
+            const userNewPhotos = newDocs.filter(change =>
+                change.doc.data().userId === APP_STATE.currentUser.uid
+            );
+            shouldAnimate = userNewPhotos.length > 0;
+        }
+
+        previousPhotoSnapshot = snapshot;
+        renderFeed(friendPhotos, shouldAnimate);
     });
 
     APP_STATE.unsubscribers.push(unsubscribe);
 }
 
-async function renderFeed(photoDocs) {
+async function renderFeed(photoDocs, shouldAnimate = false) {
     if (!photoDocs || photoDocs.length === 0) {
         elements.photoFeed.innerHTML = `
             <div class="empty-state">
@@ -1012,6 +1025,14 @@ async function renderFeed(photoDocs) {
             </div>
         `;
         return;
+    }
+
+    // Only animate if this update includes user's own new photo
+    if (shouldAnimate) {
+        elements.photoFeed.style.opacity = '0.5';
+        setTimeout(() => {
+            elements.photoFeed.style.opacity = '1';
+        }, 300);
     }
 
     const photos = photoDocs.map(doc => ({ id: doc.id, ...doc.data() }));
