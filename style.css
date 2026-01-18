@@ -521,6 +521,11 @@ body {
 
 /* ===== Camera Section ===== */
 .camera-section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: var(--spacing-xl) var(--spacing-md);
     max-width: 600px;
     margin: 0 auto;
@@ -2989,7 +2994,9 @@ input::placeholder {
         top: 1rem;
         right: 1rem;
     }
-}/* Reactions Modal */
+}
+
+/* Reactions Modal */
 .reaction-emojis {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
