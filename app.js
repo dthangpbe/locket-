@@ -1928,15 +1928,18 @@ async function openAlbum(albumId, albumName, photoCount) {
             albumPhotosGrid.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Album trống. Thêm ảnh vào album khi đăng ảnh mới!</p>';
         } else {
             // Fetch actual photo data
-            const photoIds = albumPhotosSnapshot.docs.map(doc => doc.data().photoRef.id);
-            const photosPromises = photoIds.map(photoId =>
-                db.collection('photos').doc(photoId).get()
-            );
+            const photoPromises = albumPhotosSnapshot.docs.map(async (doc) => {
+                const photoRef = doc.data().photoRef;
+                if (!photoRef) return null;
+                const photoId = photoRef.id || photoRef.path.split('/').pop();
+                return db.collection('photos').doc(photoId).get();
+            });
+
 
             const photosDocs = await Promise.all(photosPromises);
 
             const photosHTML = photosDocs
-                .filter(doc => doc.exists)
+                .filter(doc => doc && doc.exists)
                 .map(doc => {
                     const photo = doc.data();
                     return `
