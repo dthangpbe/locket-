@@ -1980,20 +1980,29 @@ async function removePhotoFromAlbum(albumId, photoId, event) {
             .collection('photos')
             .doc(photoId).delete();
 
-        // Update photo count
-        await db.collection('users')
+        // Update album
+        const albumRef = db.collection('users')
             .doc(APP_STATE.currentUser.uid)
             .collection('albums')
-            .doc(albumId).update({
-                photoCount: firebase.firestore.FieldValue.increment(-1)
-            });
+            .doc(albumId);
+
+        const albumDoc = await albumRef.get();
+        const albumData = albumDoc.data();
+        const newPhotoCount = (albumData.photoCount || 1) - 1;
+
+        const updates = {
+            photoCount: firebase.firestore.FieldValue.increment(-1)
+        };
+
+        // Clear cover photo if album is now empty
+        if (newPhotoCount === 0) {
+            updates.coverPhotoUrl = null;
+        }
+
+        await albumRef.update(updates);
 
         // Refresh album view
-        const albumDoc = await db.collection('users').doc(APP_STATE.currentUser.uid)
-            .collection('albums').doc(albumId).get();
-        const albumData = albumDoc.data();
-
-        openAlbum(albumId, albumData.name, albumData.photoCount);
+        openAlbum(albumId, albumData.name, newPhotoCount);
         renderAlbums(); // Update albums list
     } catch (error) {
         console.error('Error removing photo from album:', error);
