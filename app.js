@@ -1936,7 +1936,7 @@ async function openAlbum(albumId, albumName, photoCount) {
             });
 
 
-            const photosDocs = await Promise.all(photosPromises);
+            const photosDocs = await Promise.all(photoPromises);
 
             const photosHTML = photosDocs
                 .filter(doc => doc && doc.exists)
