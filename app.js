@@ -1962,6 +1962,8 @@ async function openAlbum(albumId, albumName, photoCount) {
         alert('Lỗi mở album: ' + error.message);
     }
 }
+// Make openAlbum globally accessible for onclick
+window.openAlbum = openAlbum;
 
 // Remove photo from album
 async function removePhotoFromAlbum(albumId, photoId, event) {
