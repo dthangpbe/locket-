@@ -1959,6 +1959,7 @@ async function openAlbum(albumId, albumName, photoCount) {
         openModal(elements.albumDetailModal);
     } catch (error) {
         console.error('Error opening album:', error);
+        alert('Lỗi mở album: ' + error.message);
     }
 }
 
