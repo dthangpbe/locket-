@@ -314,7 +314,7 @@ async function handleRegister() {
         }
 
         // Create Firebase Auth account
-        const email = `${accountId.replace('@', '')} @locket.app`;
+        const email = `${accountId.replace('@', '')}@locket.app`;
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
