@@ -96,7 +96,7 @@ const elements = {
 // ===== Unique ID Generation =====
 function generateAccountId(username) {
     const randomNum = Math.floor(10000 + Math.random() * 90000);
-    return `@${username.toLowerCase()} -${randomNum} `;
+    return `@${username.toLowerCase()}-${randomNum}`;
 }
 
 function getRandomAvatar() {
